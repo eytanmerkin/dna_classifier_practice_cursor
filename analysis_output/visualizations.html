@@ -1,0 +1,53 @@
+
+    <html>
+    <head>
+        <title>Data Analysis Visualizations</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            body { font-family: sans-serif; padding: 20px; }
+            .chart-container { width: 800px; margin: 20px auto; }
+        </style>
+    </head>
+    <body>
+        <h1>Data Visualizations</h1>
+        
+        <div class="chart-container">
+            <h2>GeneType Distribution</h2>
+            <canvas id="typeChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Sequence Length Distribution</h2>
+            <canvas id="lenChart"></canvas>
+        </div>
+
+        <script>
+            const ctx1 = document.getElementById('typeChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['PSEUDO', 'BIOLOGICAL_REGION', 'OTHER', 'snoRNA', 'PROTEIN_CODING', 'ncRNA', 'tRNA', 'snRNA', 'scRNA', 'rRNA'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [16153, 10974, 587, 1792, 809, 3907, 708, 205, 4, 357],
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                    }]
+                }
+            });
+
+            const ctx2 = document.getElementById('lenChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900],
+                    datasets: [{
+                        label: 'Sequence Lengths',
+                        data: [5235, 6019, 10959, 1819, 2004, 2359, 1869, 1642, 1545, 2031],
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                    }]
+                }
+            });
+        </script>
+    </body>
+    </html>
+    

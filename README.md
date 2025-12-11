@@ -1,0 +1,175 @@
+# DNA Sequence Classifier
+
+A machine learning pipeline for classifying DNA sequences by gene type using k-mer feature extraction and traditional ML models (Random Forest, XGBoost).
+
+## Project Overview
+
+This project classifies DNA nucleotide sequences into 10 gene types:
+- **PSEUDO** - Pseudogenes (non-functional gene copies)
+- **BIOLOGICAL_REGION** - Regulatory regions (enhancers, promoters)
+- **ncRNA** - Non-coding RNA
+- **snoRNA** - Small nucleolar RNA
+- **PROTEIN_CODING** - Protein-coding genes
+- **tRNA** - Transfer RNA
+- **OTHER** - Other gene types
+- **rRNA** - Ribosomal RNA
+- **snRNA** - Small nuclear RNA
+- **scRNA** - Small cytoplasmic RNA
+
+## Results Summary
+
+| Metric | Validation | Test |
+|--------|------------|------|
+| Accuracy | 88.92% | 83.55% |
+| Macro F1 | 88.77% | 61.68% |
+| Weighted F1 | - | 83.25% |
+
+**Best Model**: Random Forest with 200 trees, max_depth=30, class_weight='balanced'
+
+### Per-Class Performance (Test Set)
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| BIOLOGICAL_REGION | 0.87 | 0.93 | 0.90 | 309 |
+| PSEUDO | 0.87 | 0.82 | 0.84 | 418 |
+| ncRNA | 0.79 | 0.83 | 0.81 | 169 |
+| snoRNA | 0.69 | 0.88 | 0.77 | 42 |
+| tRNA | 1.00 | 0.70 | 0.82 | 10 |
+| PROTEIN_CODING | 0.64 | 0.53 | 0.58 | 40 |
+| OTHER | 0.60 | 0.43 | 0.50 | 7 |
+
+## Project Structure
+
+```
+dna_classifier/
+├── DNA_seq_pred/              # Original data
+├── DNA_seq_pred_cleaned/      # Cleaned data (balanced, no leakage)
+├── analysis_output/           # Reports and visualizations
+│   ├── plots/
+│   │   ├── confusion_matrix.png
+│   │   └── feature_importance.png
+│   ├── model_results.md
+│   ├── report.md
+│   └── visualizations.html
+├── models/                    # Saved trained models
+│   └── best_model.joblib
+├── src/                       # Source code
+│   ├── __init__.py
+│   ├── features.py            # K-mer feature extraction
+│   ├── data_loader.py         # Data loading utilities
+│   ├── train.py               # Model training
+│   ├── evaluate.py            # Model evaluation
+│   └── main.py                # CLI entry point
+├── analyze_data.py            # Initial data analysis
+├── clean_data.py              # Data cleaning script
+├── requirements.txt           # Python dependencies
+└── README.md
+```
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/dna_classifier.git
+cd dna_classifier
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+## Usage
+
+### Train a Model
+
+```bash
+# Train Random Forest (default)
+python src/main.py --train --model rf
+
+# Train XGBoost
+python src/main.py --train --model xgb
+
+# Train both and select best
+python src/main.py --train --model both
+
+# With hyperparameter tuning (slower but better)
+python src/main.py --train --model both --tune
+```
+
+### Evaluate a Model
+
+```bash
+# Evaluate saved model on test set
+python src/main.py --evaluate
+
+# Train and evaluate in one command
+python src/main.py --train --evaluate --model both
+```
+
+### Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--train` | Train a model | - |
+| `--evaluate` | Evaluate on test set | - |
+| `--model` | Model type: rf, xgb, both | both |
+| `--k` | K-mer length | 4 |
+| `--tune` | Tune hyperparameters | False |
+| `--data-dir` | Data directory | DNA_seq_pred_cleaned |
+
+## Methodology
+
+### Feature Engineering
+
+DNA sequences are converted to numerical features using **k-mer counting**:
+1. Slide a window of size k across the sequence
+2. Count occurrences of each possible k-mer (4^k possibilities)
+3. Normalize by sequence length
+
+For k=4, each sequence becomes a 256-dimensional feature vector.
+
+### Data Preprocessing
+
+The original data had several issues that were fixed:
+- **Data Leakage**: 7,204 sequences appeared in both train and test sets → Removed from test
+- **Duplicates**: 709 duplicate sequences in training → Deduplicated
+- **Class Imbalance**: PSEUDO had 16k samples, scRNA had 3 → Balanced via under/oversampling
+
+### Model Selection
+
+Two models were compared:
+1. **Random Forest** with balanced class weights
+2. **XGBoost** with multi-class softmax objective
+
+Random Forest achieved higher Macro F1 (0.8877 vs 0.8714) and was selected as the best model.
+
+## Key Findings
+
+1. **Strong Performance on Major Classes**: BIOLOGICAL_REGION, PSEUDO, and ncRNA achieve F1 > 0.80
+2. **Challenges with Rare Classes**: scRNA (1 test sample) and snRNA (6 samples) have very few examples
+3. **Feature Importance**: Certain 4-mers are highly predictive (see `analysis_output/plots/feature_importance.png`)
+
+## Future Improvements
+
+- [ ] Use deep learning (CNN/LSTM) for sequence modeling
+- [ ] Add more features (GC content, sequence length, motifs)
+- [ ] Collect more data for rare classes
+- [ ] Try SMOTE or other synthetic oversampling for minority classes
+
+## Dependencies
+
+- pandas >= 1.3.0
+- numpy >= 1.21.0
+- scikit-learn >= 1.0.0
+- xgboost >= 1.5.0
+- matplotlib >= 3.4.0
+- seaborn >= 0.11.0
+- joblib >= 1.1.0
+
+## License
+
+MIT License
+
