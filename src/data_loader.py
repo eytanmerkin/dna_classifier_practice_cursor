@@ -16,6 +16,28 @@ except ImportError:
     from features import batch_extract_features, get_feature_names
 
 
+def map_gene_types_to_grouped(gene_type: str) -> str:
+    """
+    Map individual gene types to grouped classes.
+    
+    Groups all non-coding RNA types into a single NON_CODING_RNA class:
+    - ncRNA, snoRNA, snRNA, scRNA, tRNA, rRNA → NON_CODING_RNA
+    - All other classes remain unchanged
+    
+    Args:
+        gene_type: Original gene type string
+        
+    Returns:
+        Grouped gene type string
+    """
+    non_coding_rna_types = {'ncRNA', 'snoRNA', 'snRNA', 'scRNA', 'tRNA', 'rRNA'}
+    
+    if gene_type in non_coding_rna_types:
+        return 'NON_CODING_RNA'
+    
+    return gene_type
+
+
 def load_data(data_dir: str = "DNA_seq_pred_cleaned") -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load train, validation, and test datasets from CSV files.
@@ -89,7 +111,8 @@ def encode_labels(labels: pd.Series,
 
 
 def prepare_dataset(data_dir: str = "DNA_seq_pred_cleaned", 
-                    k: int = 4) -> dict:
+                    k: int = 4,
+                    use_grouped_classes: bool = False) -> dict:
     """
     Load and prepare the full dataset for training.
     
@@ -113,6 +136,19 @@ def prepare_dataset(data_dir: str = "DNA_seq_pred_cleaned",
     
     print("\nExtracting test features...")
     X_test = prepare_features(test_df, k=k)
+    
+    # Apply class grouping if requested
+    if use_grouped_classes:
+        print("\nApplying class grouping...")
+        train_df = train_df.copy()
+        val_df = val_df.copy()
+        test_df = test_df.copy()
+        
+        train_df['GeneType'] = train_df['GeneType'].apply(map_gene_types_to_grouped)
+        val_df['GeneType'] = val_df['GeneType'].apply(map_gene_types_to_grouped)
+        test_df['GeneType'] = test_df['GeneType'].apply(map_gene_types_to_grouped)
+        
+        print("  Grouped non-coding RNA types into NON_CODING_RNA")
     
     # Encode labels
     print("\nEncoding labels...")

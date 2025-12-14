@@ -1,57 +1,75 @@
 # DNA Classifier - Model Results
 
-**Generated**: 2025-12-11 14:54:26
+**Generated**: 2025-12-14 20:01:22
 
 ## Model Information
 
-- **Model Type**: RandomForest
-- **Validation Macro F1**: 0.8877
-- **Validation Accuracy**: 0.8892
+- **Model Type**: XGBoost
+- **Validation Macro F1**: 0.8508
+- **Validation Accuracy**: 0.9008
 
 ### Best Hyperparameters
 
 ```
-bootstrap: True
-ccp_alpha: 0.0
-class_weight: balanced
-criterion: gini
-max_depth: 30
-max_features: sqrt
-max_leaf_nodes: None
-max_samples: None
-min_impurity_decrease: 0.0
-min_samples_leaf: 1
-min_samples_split: 2
-min_weight_fraction_leaf: 0.0
-monotonic_cst: None
+objective: multi:softmax
+base_score: None
+booster: None
+callbacks: None
+colsample_bylevel: None
+colsample_bynode: None
+colsample_bytree: None
+device: None
+early_stopping_rounds: None
+enable_categorical: False
+eval_metric: mlogloss
+feature_types: None
+feature_weights: None
+gamma: None
+grow_policy: None
+importance_type: None
+interaction_constraints: None
+learning_rate: 0.1
+max_bin: None
+max_cat_threshold: None
+max_cat_to_onehot: None
+max_delta_step: None
+max_depth: 10
+max_leaves: None
+min_child_weight: None
+missing: nan
+monotone_constraints: None
+multi_strategy: None
 n_estimators: 200
 n_jobs: -1
-oob_score: False
+num_parallel_tree: None
 random_state: 42
-verbose: 0
-warm_start: False
+reg_alpha: None
+reg_lambda: None
+sampling_method: None
+scale_pos_weight: None
+subsample: 0.8
+tree_method: None
+validate_parameters: None
+verbosity: None
+num_class: 5
+use_label_encoder: False
 ```
 
 ## Test Set Results
 
-- **Test Accuracy**: 0.8355
-- **Test Macro F1**: 0.6168
-- **Test Weighted F1**: 0.8325
+- **Test Accuracy**: 0.8657
+- **Test Macro F1**: 0.7606
+- **Test Weighted F1**: 0.8666
 
 ## Per-Class Performance
 
 | Class | Precision | Recall | F1-Score | Support |
 |-------|-----------|--------|----------|---------|
-| BIOLOGICAL_REGION | 0.8667 | 0.9256 | 0.8951 | 309 |
-| OTHER | 0.6000 | 0.4286 | 0.5000 | 7 |
-| PROTEIN_CODING | 0.6364 | 0.5250 | 0.5753 | 40 |
-| PSEUDO | 0.8702 | 0.8182 | 0.8434 | 418 |
-| ncRNA | 0.7865 | 0.8284 | 0.8069 | 169 |
-| rRNA | 0.5000 | 1.0000 | 0.6667 | 1 |
-| scRNA | 0.0000 | 0.0000 | 0.0000 | 1 |
-| snRNA | 1.0000 | 0.1667 | 0.2857 | 6 |
-| snoRNA | 0.6852 | 0.8810 | 0.7708 | 42 |
-| tRNA | 1.0000 | 0.7000 | 0.8235 | 10 |
+| BIOLOGICAL_REGION | 0.9415 | 0.8940 | 0.9171 | 1405 |
+| NON_CODING_RNA | 0.7707 | 0.8540 | 0.8103 | 870 |
+| OTHER | 0.8163 | 0.6061 | 0.6957 | 66 |
+| PROTEIN_CODING | 0.4865 | 0.5143 | 0.5000 | 105 |
+| PSEUDO | 0.8822 | 0.8772 | 0.8797 | 2118 |
 
 ## Confusion Matrix
 
@@ -66,19 +84,14 @@ warm_start: False
 ```
                    precision    recall  f1-score   support
 
-BIOLOGICAL_REGION       0.87      0.93      0.90       309
-            OTHER       0.60      0.43      0.50         7
-   PROTEIN_CODING       0.64      0.53      0.58        40
-           PSEUDO       0.87      0.82      0.84       418
-            ncRNA       0.79      0.83      0.81       169
-             rRNA       0.50      1.00      0.67         1
-            scRNA       0.00      0.00      0.00         1
-            snRNA       1.00      0.17      0.29         6
-           snoRNA       0.69      0.88      0.77        42
-             tRNA       1.00      0.70      0.82        10
+BIOLOGICAL_REGION       0.94      0.89      0.92      1405
+   NON_CODING_RNA       0.77      0.85      0.81       870
+            OTHER       0.82      0.61      0.70        66
+   PROTEIN_CODING       0.49      0.51      0.50       105
+           PSEUDO       0.88      0.88      0.88      2118
 
-         accuracy                           0.84      1003
-        macro avg       0.69      0.63      0.62      1003
-     weighted avg       0.84      0.84      0.83      1003
+         accuracy                           0.87      4564
+        macro avg       0.78      0.75      0.76      4564
+     weighted avg       0.87      0.87      0.87      4564
 
 ```

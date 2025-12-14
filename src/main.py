@@ -57,6 +57,11 @@ Examples:
                        help='Directory containing data files')
     parser.add_argument('--model-path', type=str, default='models/best_model.joblib',
                        help='Path to save/load model')
+    parser.add_argument('--version', type=str, default='v1',
+                       choices=['v1', 'v2'],
+                       help='Version: v1 (original) or v2 (grouped classes)')
+    parser.add_argument('--use-new-data', action='store_true',
+                       help='Use merged dataset (v2 only, requires DNA_seq_pred_v2)')
     
     args = parser.parse_args()
     
@@ -69,14 +74,30 @@ Examples:
     print("DNA Sequence Classifier")
     print("="*60)
     print(f"\nConfiguration:")
+    print(f"  Version: {args.version}")
     print(f"  K-mer length: {args.k}")
-    print(f"  Data directory: {args.data_dir}")
     print(f"  Model type: {args.model}")
     print(f"  Tune hyperparameters: {args.tune}")
     
+    # Determine data directory and class grouping
+    if args.version == 'v2':
+        use_grouped = True
+        if args.use_new_data:
+            data_dir = 'DNA_seq_pred_cleaned_v2'  # Use v2 cleaned data
+        else:
+            # Default to v2 cleaned data
+            data_dir = 'DNA_seq_pred_cleaned_v2'
+        print(f"  Data directory: {data_dir}")
+        print(f"  Class grouping: Enabled (NON_CODING_RNA)")
+    else:
+        use_grouped = False
+        data_dir = args.data_dir
+        print(f"  Data directory: {data_dir}")
+        print(f"  Class grouping: Disabled (original classes)")
+    
     # Load and prepare data
     print("\n" + "-"*60)
-    data = prepare_dataset(data_dir=args.data_dir, k=args.k)
+    data = prepare_dataset(data_dir=data_dir, k=args.k, use_grouped_classes=use_grouped)
     
     model = None
     model_info = None
@@ -93,7 +114,8 @@ Examples:
                 data['X_val'], data['y_val'],
                 tune_hyperparams=args.tune
             )
-            save_model(model, model_info, filename='best_model.joblib')
+            model_filename = f'best_model_{args.version}.joblib'
+            save_model(model, model_info, filename=model_filename)
             
         elif args.model == 'xgb':
             model, model_info = train_xgboost(
@@ -101,7 +123,8 @@ Examples:
                 data['X_val'], data['y_val'],
                 tune_hyperparams=args.tune
             )
-            save_model(model, model_info, filename='best_model.joblib')
+            model_filename = f'best_model_{args.version}.joblib'
+            save_model(model, model_info, filename=model_filename)
             
         else:  # both
             model, model_info = train_and_compare(
@@ -110,6 +133,10 @@ Examples:
                 tune_hyperparams=args.tune,
                 save_best=True
             )
+            # Save with version-specific name
+            if model_info:
+                model_filename = f'best_model_{args.version}.joblib'
+                save_model(model, model_info, filename=model_filename)
     
     # Evaluation
     if args.evaluate:
@@ -119,8 +146,13 @@ Examples:
         
         # Load model if not just trained
         if model is None:
-            print(f"\nLoading model from {args.model_path}...")
-            model, model_info = load_model(args.model_path)
+            # Try version-specific model path
+            if args.model_path == 'models/best_model.joblib':
+                model_path = f'models/best_model_{args.version}.joblib'
+            else:
+                model_path = args.model_path
+            print(f"\nLoading model from {model_path}...")
+            model, model_info = load_model(model_path)
             
             if model is None:
                 print("Error: No trained model found. Run with --train first.")
