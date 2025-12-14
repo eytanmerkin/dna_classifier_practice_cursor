@@ -7,64 +7,87 @@ A machine learning pipeline for classifying DNA sequences by gene type using k-m
 
 ## Project Overview
 
-This project classifies DNA nucleotide sequences into 10 gene types:
+This project classifies DNA nucleotide sequences by gene type using k-mer feature extraction and traditional ML models.
+
+### Version 2.0 (Current)
+
+**5 Classes** (grouped for better performance):
 - **PSEUDO** - Pseudogenes (non-functional gene copies)
 - **BIOLOGICAL_REGION** - Regulatory regions (enhancers, promoters)
-- **ncRNA** - Non-coding RNA
-- **snoRNA** - Small nucleolar RNA
+- **NON_CODING_RNA** - All non-coding RNA types (ncRNA, snoRNA, snRNA, scRNA, tRNA, rRNA)
 - **PROTEIN_CODING** - Protein-coding genes
-- **tRNA** - Transfer RNA
 - **OTHER** - Other gene types
-- **rRNA** - Ribosomal RNA
-- **snRNA** - Small nuclear RNA
-- **scRNA** - Small cytoplasmic RNA
+
+### Version 1.0 (Legacy)
+
+**10 Classes** (original structure):
+- Individual RNA types: ncRNA, snoRNA, snRNA, scRNA, tRNA, rRNA
+- Plus: PSEUDO, BIOLOGICAL_REGION, PROTEIN_CODING, OTHER
 
 ## Results Summary
 
-| Metric | Validation | Test |
-|--------|------------|------|
-| Accuracy | 88.92% | 83.55% |
-| Macro F1 | 88.77% | 61.68% |
-| Weighted F1 | - | 83.25% |
+### Version 2.0 (Recommended)
 
-**Best Model**: Random Forest with 200 trees, max_depth=30, class_weight='balanced'
+| Metric | Validation | Test | Improvement vs v1 |
+|--------|------------|------|-------------------|
+| Accuracy | 90.08% | **86.57%** | +3.6% |
+| Macro F1 | 85.08% | **76.06%** | +23.3% |
+| Weighted F1 | - | **86.66%** | +4.1% |
 
-### Per-Class Performance (Test Set)
+**Best Model**: XGBoost (n_estimators=200, max_depth=10)
+
+### Per-Class Performance (v2 Test Set)
 
 | Class | Precision | Recall | F1-Score | Support |
 |-------|-----------|--------|----------|---------|
-| BIOLOGICAL_REGION | 0.87 | 0.93 | 0.90 | 309 |
-| PSEUDO | 0.87 | 0.82 | 0.84 | 418 |
-| ncRNA | 0.79 | 0.83 | 0.81 | 169 |
-| snoRNA | 0.69 | 0.88 | 0.77 | 42 |
-| tRNA | 1.00 | 0.70 | 0.82 | 10 |
-| PROTEIN_CODING | 0.64 | 0.53 | 0.58 | 40 |
-| OTHER | 0.60 | 0.43 | 0.50 | 7 |
+| BIOLOGICAL_REGION | 0.94 | 0.89 | **0.92** | 1,405 |
+| PSEUDO | 0.88 | 0.88 | **0.88** | 2,118 |
+| NON_CODING_RNA | 0.77 | 0.85 | **0.81** | 870 |
+| OTHER | 0.82 | 0.61 | **0.70** | 66 |
+| PROTEIN_CODING | 0.49 | 0.51 | **0.50** | 105 |
+
+**Key Improvement**: NON_CODING_RNA achieves 0.81 F1 (vs 0.00-0.67 for individual RNA types in v1)
+
+### Version 1.0 (Legacy)
+
+| Metric | Test |
+|--------|------|
+| Accuracy | 83.55% |
+| Macro F1 | 61.68% |
 
 ## Project Structure
 
 ```
 dna_classifier/
-├── DNA_seq_pred/              # Original data
-├── DNA_seq_pred_cleaned/      # Cleaned data (balanced, no leakage)
+├── DNA_seq_pred/              # Original data (v1)
+├── DNA_seq_pred_cleaned/      # v1 cleaned data
+├── DNA_seq_pred_v2/           # Merged dataset (v2)
+├── DNA_seq_pred_cleaned_v2/   # v2 cleaned data (with class grouping)
+├── DNA_seq_pred_additional/   # Additional NCBI data (when collected)
 ├── analysis_output/           # Reports and visualizations
 │   ├── plots/
-│   │   ├── confusion_matrix.png
-│   │   └── feature_importance.png
-│   ├── model_results.md
-│   ├── report.md
-│   └── visualizations.html
+│   ├── v2_final_report.md     # Comprehensive v2 report
+│   ├── model_comparison_v1_v2.md
+│   └── ...
 ├── models/                    # Saved trained models
-│   └── best_model.joblib
+│   ├── best_model.joblib      # v1 model
+│   └── best_model_v2.joblib   # v2 model (recommended)
+├── scripts/                   # Data collection scripts
+│   ├── explore_ncbi_data.py
+│   ├── fetch_ncbi_data.py
+│   ├── validate_new_data.py
+│   ├── merge_datasets.py
+│   └── compare_models.py
 ├── src/                       # Source code
-│   ├── __init__.py
 │   ├── features.py            # K-mer feature extraction
-│   ├── data_loader.py         # Data loading utilities
+│   ├── data_loader.py         # Data loading (with class grouping)
 │   ├── train.py               # Model training
 │   ├── evaluate.py            # Model evaluation
 │   └── main.py                # CLI entry point
-├── analyze_data.py            # Initial data analysis
-├── clean_data.py              # Data cleaning script
+├── clean_data.py              # v1 data cleaning
+├── clean_data_v2.py           # v2 data cleaning (with grouping)
+├── analyze_data.py            # v1 analysis
+├── analyze_data_v2.py         # v2 analysis
 ├── requirements.txt           # Python dependencies
 └── README.md
 ```
@@ -86,30 +109,37 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Train a Model
+### Train a Model (v2 - Recommended)
 
 ```bash
-# Train Random Forest (default)
-python src/main.py --train --model rf
+# Train v2 model with grouped classes (recommended)
+python src/main.py --train --evaluate --version v2
 
-# Train XGBoost
-python src/main.py --train --model xgb
+# Train v2 with hyperparameter tuning
+python src/main.py --train --evaluate --version v2 --tune
 
-# Train both and select best
-python src/main.py --train --model both
-
-# With hyperparameter tuning (slower but better)
-python src/main.py --train --model both --tune
+# Train specific model type
+python src/main.py --train --model xgb --version v2
 ```
 
-### Evaluate a Model
+### Train Legacy v1 Model
 
 ```bash
-# Evaluate saved model on test set
-python src/main.py --evaluate
+# Train v1 model (10 classes, original structure)
+python src/main.py --train --evaluate --version v1
+```
 
-# Train and evaluate in one command
-python src/main.py --train --evaluate --model both
+### Evaluate Models
+
+```bash
+# Evaluate v2 model (recommended)
+python src/main.py --evaluate --version v2
+
+# Evaluate v1 model
+python src/main.py --evaluate --version v1
+
+# Compare v1 vs v2
+python scripts/compare_models.py
 ```
 
 ### Options
@@ -118,10 +148,11 @@ python src/main.py --train --evaluate --model both
 |------|-------------|---------|
 | `--train` | Train a model | - |
 | `--evaluate` | Evaluate on test set | - |
+| `--version` | Version: v1 or v2 | v1 |
 | `--model` | Model type: rf, xgb, both | both |
 | `--k` | K-mer length | 4 |
 | `--tune` | Tune hyperparameters | False |
-| `--data-dir` | Data directory | DNA_seq_pred_cleaned |
+| `--use-new-data` | Use merged dataset (v2 only) | False |
 
 ## Methodology
 
@@ -138,29 +169,68 @@ For k=4, each sequence becomes a 256-dimensional feature vector.
 
 The original data had several issues that were fixed:
 - **Data Leakage**: 7,204 sequences appeared in both train and test sets → Removed from test
-- **Duplicates**: 709 duplicate sequences in training → Deduplicated
-- **Class Imbalance**: PSEUDO had 16k samples, scRNA had 3 → Balanced via under/oversampling
+- **Duplicates**: Duplicate sequences → Deduplicated
+- **Class Imbalance**: Severe imbalance (PSEUDO: 16k, scRNA: 3) → Addressed via class grouping
+
+### Class Grouping (v2.0)
+
+Version 2.0 groups 6 rare non-coding RNA types into a single `NON_CODING_RNA` class:
+- **Before**: ncRNA, snoRNA, snRNA, scRNA, tRNA, rRNA (6 separate classes)
+- **After**: NON_CODING_RNA (1 class)
+- **Result**: Improved F1 from 0.00-0.67 to 0.81 for these types
 
 ### Model Selection
 
-Two models were compared:
+Two models are compared:
 1. **Random Forest** with balanced class weights
 2. **XGBoost** with multi-class softmax objective
 
-Random Forest achieved higher Macro F1 (0.8877 vs 0.8714) and was selected as the best model.
+**v2**: XGBoost achieved higher Macro F1 (0.8508 vs 0.8228) and was selected.
 
 ## Key Findings
 
-1. **Strong Performance on Major Classes**: BIOLOGICAL_REGION, PSEUDO, and ncRNA achieve F1 > 0.80
-2. **Challenges with Rare Classes**: scRNA (1 test sample) and snRNA (6 samples) have very few examples
-3. **Feature Importance**: Certain 4-mers are highly predictive (see `analysis_output/plots/feature_importance.png`)
+### Version 2.0
+
+1. **Class Grouping Success**: Reducing from 10 to 5 classes improved Macro F1 by 23%
+2. **NON_CODING_RNA Performance**: Achieved 0.81 F1 (vs 0.00-0.67 for individual types)
+3. **Strong Major Classes**: BIOLOGICAL_REGION (0.92) and PSEUDO (0.88) perform excellently
+4. **Areas for Improvement**: PROTEIN_CODING (0.50) and OTHER (0.70) need more data
+
+### Version 1.0
+
+1. **Strong Performance on Major Classes**: BIOLOGICAL_REGION, PSEUDO, and ncRNA achieved F1 > 0.80
+2. **Challenges with Rare Classes**: scRNA (1 test sample) and snRNA (6 samples) had very few examples
+3. **Feature Importance**: Certain 4-mers are highly predictive
+
+## Data Collection Infrastructure
+
+The project includes scripts for collecting additional data from NCBI:
+
+```bash
+# Install biopython
+pip install biopython
+
+# Set NCBI email (required)
+export NCBI_EMAIL='your.email@example.com'
+
+# Fetch additional sequences
+python scripts/fetch_ncbi_data.py
+
+# Validate and merge
+python scripts/validate_new_data.py
+python scripts/merge_datasets.py
+```
+
+See `analysis_output/ncbi_data_sources.md` for detailed documentation.
 
 ## Future Improvements
 
+- [x] Class grouping for rare classes ✅ (v2.0)
+- [x] Data collection infrastructure ✅ (v2.0)
+- [ ] Collect more data for PROTEIN_CODING and OTHER classes
 - [ ] Use deep learning (CNN/LSTM) for sequence modeling
 - [ ] Add more features (GC content, sequence length, motifs)
-- [ ] Collect more data for rare classes
-- [ ] Try SMOTE or other synthetic oversampling for minority classes
+- [ ] Hyperparameter tuning for v2 model
 
 ## Dependencies
 
@@ -171,6 +241,7 @@ Random Forest achieved higher Macro F1 (0.8877 vs 0.8714) and was selected as th
 - matplotlib >= 3.4.0
 - seaborn >= 0.11.0
 - joblib >= 1.1.0
+- biopython >= 1.81 (for NCBI data collection)
 
 ## License
 
