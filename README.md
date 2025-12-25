@@ -84,10 +84,14 @@ dna_classifier/
 │   ├── train.py               # Model training
 │   ├── evaluate.py            # Model evaluation
 │   └── main.py                # CLI entry point
+├── tests/                     # Unit tests
+│   ├── test_features.py       # Tests for k-mer extraction
+│   └── test_data_loader.py    # Tests for data loading
 ├── clean_data.py              # v1 data cleaning
 ├── clean_data_v2.py           # v2 data cleaning (with grouping)
 ├── analyze_data.py            # v1 analysis
 ├── analyze_data_v2.py         # v2 analysis
+├── conftest.py                # Pytest fixtures
 ├── requirements.txt           # Python dependencies
 └── README.md
 ```
@@ -232,6 +236,18 @@ See `analysis_output/ncbi_data_sources.md` for detailed documentation.
 - [ ] Add more features (GC content, sequence length, motifs)
 - [ ] Hyperparameter tuning for v2 model
 
+## Testing
+
+Run the test suite:
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific test file
+pytest tests/test_features.py -v
+```
+
 ## Dependencies
 
 - pandas >= 1.3.0
@@ -242,6 +258,7 @@ See `analysis_output/ncbi_data_sources.md` for detailed documentation.
 - seaborn >= 0.11.0
 - joblib >= 1.1.0
 - biopython >= 1.81 (for NCBI data collection)
+- pytest >= 7.0.0 (for testing)
 
 ## License
 
